@@ -19,8 +19,15 @@ all: print-banner rabbitmq.so
 clean:
 	$(RM) core *.o *.so *.so.${VERSION}
 
+# Dev targets
+
+lint:
+	arc lint --apply-patches
+
 demo:
 	rlwrap tclsh
+
+rebuild: clean lint all demo
 
 # Helpers
 
