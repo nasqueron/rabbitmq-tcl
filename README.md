@@ -1,0 +1,56 @@
+# RabbitMQ TCL
+
+This library is a wrapper around [rabbitmq-c](https://github.com/alanxz/rabbitmq-c).
+
+It exposes the C functions allowing to interact with a RabbitMQ server in TCL.
+
+Work in progress, not yeat ready for production.
+
+## User starting guide
+
+### Installation
+
+```
+git clone https://github.com/dereckson/rabbitmq-tcl.git
+cd rabbitmq-tcl
+make
+```
+
+### How to use it?
+
+To load the library:
+
+```
+load rabbitmq.so
+```
+
+You'll then got a mq command to interact with your broker:
+
+```
+mq connect broker.domain.tld username password
+mq disconnect
+```
+
+If you need to use more than one connectionn, you've also aliases mq1 to mq10:
+
+```
+mq3 connect
+mq3 disconnect
+```
+
+## Misc
+
+### Acknowledgment
+
+* Alan Antonuk, rabbitmq-c maintainer
+* Fastbase, which provides [fbsql(]http://www.fastbase.co.nz/fbsql/fbsql.c),
+  which is used as the model and starting point for this library.
+
+### Colophon
+
+This work has been created for Nasqueron, to allow their operations and
+infrastructure TCL code to interact to our message broker.
+
+**Editors used:** vim, Cloud9
+
+**Compiler:** clang/llvm

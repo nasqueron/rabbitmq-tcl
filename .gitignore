@@ -1,0 +1,7 @@
+# C
+*.o
+*.core
+
+# Libraries
+*.so
+*.so.*
