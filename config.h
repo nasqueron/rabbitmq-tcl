@@ -44,7 +44,8 @@
 
 // If you use `.mq connect` without any parameter, where do you want to connect?
 
-#define BROKER_HOST localhost
+#define BROKER_HOST "localhost"
 #define BROKER_PORT 5672
-#define BROKER_USER guest
-#define BROKER_PASS guest
+#define BROKER_USER "guest"
+#define BROKER_PASS "guest"
+#define BROKER_VHOST "/"
