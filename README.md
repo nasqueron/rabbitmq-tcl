@@ -4,7 +4,7 @@ This library is a wrapper around [rabbitmq-c](https://github.com/alanxz/rabbitmq
 
 It exposes the C functions allowing to interact with a RabbitMQ server in TCL.
 
-Work in progress, not yeat ready for production.
+Work in progress, not yet ready for production or a for a technical preview.
 
 ## User starting guide
 
