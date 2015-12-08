@@ -1,0 +1,30 @@
+{
+    "linters": {
+        "chmod": {
+            "type": "chmod"
+        },
+        "clang-format": {
+            "type": "clang-format",
+            "include": [
+                "(\\.c$)",
+                "(\\.h$)",
+                "(\\.m$)",
+                "(\\.mm$)"
+            ]
+        },
+        "filename": {
+            "type": "filename"
+        },
+        "generated": {
+            "type": "generated"
+        },
+        "json": {
+            "type": "json",
+            "include": [
+                "(^\\.arcconfig$)",
+                "(^\\.arclint$)",
+                "(\\.json$)"
+            ]
+        }
+    }
+}
