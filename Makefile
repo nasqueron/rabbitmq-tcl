@@ -23,6 +23,7 @@ demo:
 	rlwrap tclsh
 
 # Helpers
+
 print-banner:
 	@cat doc/banner
 	@date
