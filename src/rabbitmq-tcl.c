@@ -258,7 +258,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
         return tcl_error(tclInterpreter, "Can't login to the broker.");
     }
 
-    // Open a first channel
+    // Opens a first channel
     amqp_channel_open(conn, 1);
     if (amqp_get_error(conn, &result)) {
         return tcl_amqp_error(tclInterpreter, "Can't open a channel:", result);
