@@ -43,7 +43,7 @@ mq3 disconnect
 ### Acknowledgment
 
 * Alan Antonuk, rabbitmq-c maintainer
-* Fastbase, which provides [fbsql(]http://www.fastbase.co.nz/fbsql/fbsql.c),
+* Fastbase, which provides [fbsql](http://www.fastbase.co.nz/fbsql/fbsql.c),
   which is used as the model and starting point for this library.
 
 ### Colophon
@@ -52,5 +52,5 @@ This work has been created for Nasqueron, to allow their operations and
 infrastructure TCL code to interact to our message broker.
 
 **Editors used:** vim, Cloud9
-
+**Tools used:** Arcanist, clang-format
 **Compiler:** clang/llvm
