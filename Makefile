@@ -14,10 +14,10 @@ RM=rm -f
 
 # Main targets
 
-all: print-banner rabbitmq.so
+all: print-banner build/rabbitmq.so
 
 clean:
-	$(RM) core *.o *.so *.so.${VERSION}
+	$(RM) core build/*.o build/*.so build/*.so.${VERSION}
 
 # Dev targets
 
@@ -37,9 +37,10 @@ print-banner:
 
 # Files targets
 
-rabbitmq.so: rabbitmq.o
-	${CC} -shared -Wl,-soname,rabbitmq.so.${MAJOR_VERSION} -o rabbitmq.so.${VERSION} rabbitmq.o
-	ln -s rabbitmq.so.${VERSION} rabbitmq.so
+build/rabbitmq.so: build/rabbitmq.o
+	${CC} -shared -Wl,-soname,rabbitmq.so.${MAJOR_VERSION} -o build/rabbitmq.so.${VERSION} build/*.o
+	cd build && ln -s rabbitmq.so.${VERSION} rabbitmq.so
 
-rabbitmq.o:
-	${CC} -c -fPIC rabbitmq-tcl.c -o rabbitmq.o
+build/rabbitmq.o:
+	mkdir -p build
+	${CC} -c -fPIC rabbitmq-tcl.c -o build/rabbitmq.o
