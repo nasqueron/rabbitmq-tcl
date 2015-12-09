@@ -237,7 +237,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
         vhost = BROKER_VHOST;
     }
 
-    // Opens a TCP connection  to the broker
+    // Opens a TCP connection to the broker
 
     conn = amqp_new_connection();
     socket = amqp_tcp_socket_new(conn);
