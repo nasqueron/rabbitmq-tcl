@@ -1,5 +1,5 @@
 /*  -------------------------------------------------------------
-    RabbitMQ TCL - Header
+    RabbitMQ TCL - String utilities
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
      ___  __ \_____ ___  /____  /____(_)_  /___   |/  /_  __ \
@@ -16,28 +16,36 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Software:       RabbitMQ TCL
     Author:         Sébastien Santoro aka Dereckson
-    Filename:       rabbitmq-tcl.h
+    Filename:       strpos.h
     Created:        2015-12-08
     Licence:        BSD-2-Clause
     -------------------------------------------------------------    */
 
-/*  -------------------------------------------------------------
-    Functions from utils/
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
-
-#include "utils/netutils.h"
+#include <string.h>
 
 /*  -------------------------------------------------------------
-    Functions explicit declaration (by alphabetical order)
+    Magic constants
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
-char *get_version_string();
+#define STR_NOT_FOUND -1
 
-static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
-                      int argc, char **argv);
-int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
-               char **argv);
-int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter);
-int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
-int mq_usage(Tcl_Interp *tclInterpreter);
-int mq_version(Tcl_Interp *tclInterpreter);
+/*  -------------------------------------------------------------
+    Common string functions: strpos
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
+
+/**
+ * Finds the position of the first occurrence of a substring in a string
+ *
+ * @param[in] haystack The string to search in
+ * @param[in] needle The string to search
+ * @return The position of where the needle exists, or STR_NOT_FOUND
+ */
+int strpos(const char *haystack, const char *needle) {
+    // http://stackoverflow.com/a/7655509/1930997 - snippet by Miere
+    char *p = strstr(haystack, needle);
+
+    if (p)
+        return p - haystack;
+
+    return STR_NOT_FOUND;
+}

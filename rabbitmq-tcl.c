@@ -120,10 +120,44 @@ int mq_version(Tcl_Interp *tclInterpreter) {
 int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                char **argv) {
 
+    char *host, *user, *pass, *vhost;
+    int port;
+
     if (brokerConnections[connectionNumber].connected == 1) {
         Tcl_SetResult(tclInterpreter, "Already connected.", TCL_STATIC);
         return TCL_ERROR;
     }
+
+    // Connection parameters
+
+    if (argc > 0 && argv[0]) {
+        host = get_host(argv[0], BROKER_HOST);
+        port = get_port(argv[0], BROKER_PORT);
+    } else {
+        host = BROKER_HOST;
+        port = BROKER_PORT;
+    }
+    if (argc > 1 && argv[1]) {
+        user = argv[1];
+    } else {
+        user = BROKER_USER;
+    }
+    if (argc > 2 && argv[2]) {
+        pass = argv[2];
+    } else {
+        pass = BROKER_PASS;
+    }
+    if (argc > 3 && argv[3]) {
+        vhost = argv[3];
+    } else {
+        vhost = BROKER_VHOST;
+    }
+
+    char *debugInformation = malloc(256 * sizeof(char));
+    //"Connecting to amqp://%s:%s@%s:%d"
+    sprintf(debugInformation, "Connecting to amqp://%s:%s@%s:%d", user, pass,
+            host, port);
+    Tcl_SetResult(tclInterpreter, debugInformation, TCL_STATIC);
 
     if (0) {
         Tcl_SetResult(tclInterpreter, "Can't connect to the broker.",

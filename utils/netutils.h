@@ -1,5 +1,5 @@
 /*  -------------------------------------------------------------
-    RabbitMQ TCL - Header
+    RabbitMQ TCL - Header for netutils
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
      ___  __ \_____ ___  /____  /____(_)_  /___   |/  /_  __ \
@@ -16,28 +16,14 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Software:       RabbitMQ TCL
     Author:         Sébastien Santoro aka Dereckson
-    Filename:       rabbitmq-tcl.h
-    Created:        2015-12-08
+    Filename:       netutils.h
+    Created:        2015-12-09
     Licence:        BSD-2-Clause
     -------------------------------------------------------------    */
-
-/*  -------------------------------------------------------------
-    Functions from utils/
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
-
-#include "utils/netutils.h"
 
 /*  -------------------------------------------------------------
     Functions explicit declaration (by alphabetical order)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
-char *get_version_string();
-
-static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
-                      int argc, char **argv);
-int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
-               char **argv);
-int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter);
-int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
-int mq_usage(Tcl_Interp *tclInterpreter);
-int mq_version(Tcl_Interp *tclInterpreter);
+char *get_host(const char *expression, const char *defaultHost);
+int get_port(const char *expression, int defaultPort);

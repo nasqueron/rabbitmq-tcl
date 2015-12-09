@@ -43,4 +43,5 @@ build/rabbitmq.so: build/rabbitmq.o
 
 build/rabbitmq.o:
 	mkdir -p build
+	${CC} -c -fPIC utils/netutils.c -o build/netutils.o
 	${CC} -c -fPIC rabbitmq-tcl.c -o build/rabbitmq.o
