@@ -38,6 +38,7 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
 int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                char **argv);
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter);
-int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
 int mq_usage(Tcl_Interp *tclInterpreter);
 int mq_version(Tcl_Interp *tclInterpreter);
+
+int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
