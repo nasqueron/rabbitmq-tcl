@@ -224,7 +224,7 @@ int Rabbitmq_Init(Tcl_Interp *tclInterpreter) {
     }
 #endif
 
-    // Creates mq annd mq1-mq10 commands
+    // Creates mq and mq1-mq10 commands
 
     for (i = 0; i <= MQ_COMMANDS_AMOUNT; i++) {
         if (i == 0) {
