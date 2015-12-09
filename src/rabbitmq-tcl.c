@@ -52,6 +52,18 @@ char *get_version_string() {
     return versionString;
 }
 
+/**
+ * Prints an error message as command result and notify TCL an error occured.
+ *
+ * @param[out] tclInterpreter The interpreter in which to set result
+ * @param[in] error The error message
+ * @return TCL_ERROR
+ */
+int tcl_error(Tcl_Interp *tclInterpreter, char *error) {
+    Tcl_SetResult(tclInterpreter, error, TCL_STATIC);
+    return TCL_ERROR;
+}
+
 /*  -------------------------------------------------------------
     TCL commands
 
@@ -92,9 +104,7 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
  * @param[out] tclInterpreter The interpreter to send command result to
  */
 int mq_usage(Tcl_Interp *tclInterpreter) {
-    Tcl_SetResult(tclInterpreter, "Usage: mq <connect|disconnect|version>",
-                  TCL_STATIC);
-    return TCL_ERROR;
+    return tcl_error(tclInterpreter, "Usage: mq <connect|disconnect|version>");
 }
 
 /**
@@ -124,8 +134,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     int port;
 
     if (brokerConnections[connectionNumber].connected == 1) {
-        Tcl_SetResult(tclInterpreter, "Already connected.", TCL_STATIC);
-        return TCL_ERROR;
+        return tcl_error(tclInterpreter, "Already connected.");
     }
 
     // Connection parameters
@@ -160,9 +169,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     Tcl_SetResult(tclInterpreter, debugInformation, TCL_STATIC);
 
     if (0) {
-        Tcl_SetResult(tclInterpreter, "Can't connect to the broker.",
-                      TCL_STATIC);
-        return TCL_ERROR;
+        tcl_error(tclInterpreter, "Can't connect to the broker.");
     }
 
     brokerConnections[connectionNumber].connected = 1;
@@ -178,8 +185,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
  */
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
     if (brokerConnections[connectionNumber].connected == 0) {
-        Tcl_SetResult(tclInterpreter, "not connected", TCL_STATIC);
-        return TCL_ERROR;
+        return tcl_error(tclInterpreter, "not connected");
     }
 
     brokerConnections[connectionNumber].connected = 0;
