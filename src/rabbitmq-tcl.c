@@ -19,7 +19,10 @@
 #include <string.h>
 
 #include <tcl.h>
-/* TODO: include librabbitmq */
+
+#include <amqp_tcp_socket.h>
+#include <amqp.h>
+#include <amqp_framing.h>
 
 #include "config.h"
 #include "version.h"
@@ -34,6 +37,7 @@
  */
 struct broker_connection {
     int connected; /* 0 if disconnected, 1 if connected */
+    amqp_connection_state_t connection;
 } brokerConnections[MQ_COMMANDS_AMOUNT];
 
 /*  -------------------------------------------------------------
@@ -62,6 +66,72 @@ char *get_version_string() {
 int tcl_error(Tcl_Interp *tclInterpreter, char *error) {
     Tcl_SetResult(tclInterpreter, error, TCL_STATIC);
     return TCL_ERROR;
+}
+
+/**
+ * Gets a broker error
+ *
+ * @param[in] connection The AMQP connection
+ * @param[out] rcpReply The AMQP RPC reply
+ * @return 1 if an error occured, 0 if not
+ */
+int amqp_get_error(amqp_connection_state_t connection,
+                   amqp_rpc_reply_t *rpcReply) {
+    amqp_rpc_reply_t reply = amqp_get_rpc_reply(connection);
+    rpcReply = &reply;
+    return reply.reply_type != AMQP_RESPONSE_NORMAL;
+}
+
+/**
+ * Determines the AMQP error from the server RPC reply, prints an error message
+ * based on this error and the specified context, then notify TCL an error
+ *occured.
+ *
+ * @param[out] tclInterpreter The interpreter in which to set result
+ * @param[in] errorContext The context of the error message, typically what were
+ *done at the moment of the error
+ * @param[in] rcpReply The AMQP RPC reply
+ * @return TCL_ERROR
+ */
+int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
+                   amqp_rpc_reply_t rpcReply) {
+    char *error;
+
+    if (rpcReply.reply_type == AMQP_RESPONSE_NORMAL) {
+        // Not an error
+        return TCL_OK;
+    }
+
+    error = malloc(1024 * sizeof(char));
+    if (rpcReply.reply_type == AMQP_RESPONSE_NONE) {
+        sprintf(error, "%s a broker error occurred, but with an unexpected RPC "
+                       "reply type. Please report this bug as issue.",
+                errorContext);
+    } else if (rpcReply.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION) {
+        sprintf(error, "%s %s", errorContext,
+                amqp_error_string2(rpcReply.library_error));
+    } else if (rpcReply.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION) {
+        if (rpcReply.reply.id == AMQP_CONNECTION_CLOSE_METHOD) {
+            amqp_connection_close_t *m =
+                (amqp_connection_close_t *)rpcReply.reply.decoded;
+            sprintf(error,
+                    "%s a server connection error %d occurred, message: %.*s",
+                    errorContext, m->reply_code, (int)m->reply_text.len,
+                    (char *)m->reply_text.bytes);
+        } else if (rpcReply.reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
+            amqp_channel_close_t *m =
+                (amqp_channel_close_t *)rpcReply.reply.decoded;
+            sprintf(error, "%s a server channel error %d occurred: %.*s",
+                    errorContext, m->reply_code, (int)m->reply_text.len,
+                    (char *)m->reply_text.bytes);
+        } else {
+            sprintf(error,
+                    "%s an unknown server error occurred, method id 0x%08X",
+                    errorContext, rpcReply.reply.id);
+        }
+    }
+
+    return tcl_error(tclInterpreter, error);
 }
 
 /*  -------------------------------------------------------------
@@ -131,7 +201,12 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                char **argv) {
 
     char *host, *user, *pass, *vhost;
-    int port;
+    int port, status;
+    amqp_connection_state_t conn;
+    amqp_socket_t *socket;
+    amqp_rpc_reply_t result;
+
+    // We don't allow to reconnect without first used mq disconnect
 
     if (brokerConnections[connectionNumber].connected == 1) {
         return tcl_error(tclInterpreter, "Already connected.");
@@ -162,16 +237,36 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
         vhost = BROKER_VHOST;
     }
 
-    char *debugInformation = malloc(256 * sizeof(char));
-    //"Connecting to amqp://%s:%s@%s:%d"
-    sprintf(debugInformation, "Connecting to amqp://%s:%s@%s:%d", user, pass,
-            host, port);
-    Tcl_SetResult(tclInterpreter, debugInformation, TCL_STATIC);
+    // Opens a TCP connection  to the broker
 
-    if (0) {
-        tcl_error(tclInterpreter, "Can't connect to the broker.");
+    conn = amqp_new_connection();
+    socket = amqp_tcp_socket_new(conn);
+    if (!socket) {
+        return tcl_error(tclInterpreter, "Can't create TCP socket.");
     }
 
+    status = amqp_socket_open(socket, host, port);
+    if (status) {
+        return tcl_error(tclInterpreter, "Can't connect to the broker.");
+    }
+
+    // Logins to the broker
+    // No heartbeat, unlimited channels, 128K (131072) frame size
+    result = amqp_login(conn, vhost, 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, user,
+                        pass);
+    if (result.reply_type != AMQP_RESPONSE_NORMAL) {
+        return tcl_error(tclInterpreter, "Can't login to the broker.");
+    }
+
+    // Open a first channel
+    amqp_channel_open(conn, 1);
+    if (amqp_get_error(conn, &result)) {
+        return tcl_amqp_error(tclInterpreter, "Can't open a channel:", result);
+    }
+
+    // We're connected. All is good.
+
+    brokerConnections[connectionNumber].connection = conn;
     brokerConnections[connectionNumber].connected = 1;
     return TCL_OK;
 }
@@ -180,15 +275,35 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
  * mq disconnect
  *
  * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
- * @param[out] tclInterpreter The interpreter in which to create new command
+ * @param[out] tclInetrpreter The interpreter in which to create new command
  * @return TCL_OK on success, TCL_ERROR if not connected
  */
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
+    amqp_rpc_reply_t result;
+
     if (brokerConnections[connectionNumber].connected == 0) {
-        return tcl_error(tclInterpreter, "not connected");
+        return tcl_error(tclInterpreter, "Not connected.");
     }
 
+    // We mark early as disconnected, to allow to recycle the slot
+    // event if an error occurs during disconnect.
     brokerConnections[connectionNumber].connected = 0;
+
+    amqp_connection_state_t conn =
+        brokerConnections[connectionNumber].connection;
+
+    result = amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS);
+    if (result.reply_type != AMQP_RESPONSE_NORMAL) {
+        return tcl_amqp_error(tclInterpreter,
+                              "An error occured closing channel:", result);
+    }
+    result = amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
+    if (result.reply_type != AMQP_RESPONSE_NORMAL) {
+        return tcl_amqp_error(tclInterpreter,
+                              "An error occured closing connection:", result);
+    }
+
+    amqp_destroy_connection(conn);
     return TCL_OK;
 }
 

@@ -6,10 +6,11 @@ RABBITMQ_INCLUDE=/usr/include
 INCLUDES=-I$(TCL_INCLUDE) -I$(RABBITMQ_INCLUDE)
 
 BUILD=../build
-LIBS=-ltcl8.6
+LIBS=-ltcl8.6 -lrabbitmq
 
 #CCOPTS=-DUSE_TCL_STUBS=1
-CC=clang ${CCOPTS} ${INCLUDES} ${LIBS}
+CC=clang ${CCOPTS} ${INCLUDES}
+LINKER=clang ${LIBS}
 
 RM=rm -f
 
@@ -39,7 +40,7 @@ print-banner:
 # Files targets
 
 ${BUILD}/rabbitmq.so: ${BUILD}/rabbitmq.o
-	${CC} -shared -Wl,-soname,rabbitmq.so.${MAJOR_VERSION} -o ${BUILD}/rabbitmq.so.${VERSION} ${BUILD}/*.o
+	${LINKER} -shared -Wl,-soname,rabbitmq.so.${MAJOR_VERSION} -o ${BUILD}/rabbitmq.so.${VERSION} ${BUILD}/*.o
 	cd ${BUILD} && ln -s rabbitmq.so.${VERSION} rabbitmq.so
 
 ${BUILD}/rabbitmq.o:
