@@ -39,6 +39,13 @@ char *get_host(const char *expression, const char *defaultHost) {
     char *host = malloc(1024 * sizeof(char));
     int pos;
 
+    // If the expression is empty, the default host is privileged
+    if (expression[0] == '\0') {
+        strcpy(host, defaultHost);
+        return host;
+    }
+
+    // Gets the host part of an host:port expression
     pos = strpos(expression, ":");
     if (pos == STR_NOT_FOUND) {
         strcpy(host, expression);
