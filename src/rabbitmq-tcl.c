@@ -52,7 +52,7 @@ struct broker_connection {
 char *get_version_string() {
     char *versionString = malloc(256 * sizeof(char));
     sprintf(versionString, "%s %s", RABBITMQ_TCL_PRODUCT_NAME,
-            RABBITMQ_TCL_VERSION);
+            RABBITMQ_TCL_PRODUCT_VERSION);
     return versionString;
 }
 
@@ -320,33 +320,41 @@ extern int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
 #endif
 
 /**
- * Initializes the library and provide mq commands
+ * Determines TCL environment is correct and initiliazes stubs if needed
  *
- * @param[out] tclInterpreter The current TCL interpreter to provide command to
- * @return TCL_OK on success; otherwise, TCL_ERROR
+ * @param[out] tclInterpreter The current TCL interpreter
+ * @return 1 on success; otherwise, 0
  */
-int Rabbitmq_Init(Tcl_Interp *tclInterpreter) {
-    int i, result;
-    char commandName[10];
-
-    // TCL requirements and stubs
-
+int tcl_init(Tcl_Interp *tclInterpreter) {
+    // This extension requires TCL 8.0+
     if (Tcl_PkgRequire(tclInterpreter, "Tcl", TCL_VERSION, 0) == NULL) {
         if (TCL_VERSION[0] == '7') {
             if (Tcl_PkgRequire(tclInterpreter, "Tcl", "8.0", 0) == NULL) {
-                return TCL_ERROR;
+                return 0;
             }
         }
     }
 
 #if USE_TCL_STUBS
+    // Initializes stubs (requires TCL 8.1+)
     if (Tcl_InitStubs(tclInterpreter, "8.1", 0) == NULL) {
-        return TCL_ERROR;
+        return 0;
     }
 #endif
 
-    // Creates mq and mq1-mq10 commands
+    return 1;
+}
 
+/**
+ * Creates TCL commands
+ *
+ * @param[out] tclInterpreter The current TCL interpreter
+ */
+void tcl_create_commands(Tcl_Interp *tclInterpreter) {
+    int i;
+    char commandName[10];
+
+    // Creates mq and mq1-mq10 commands
     for (i = 0; i <= MQ_COMMANDS_AMOUNT; i++) {
         if (i == 0) {
             strcpy(commandName, "mq");
@@ -359,12 +367,37 @@ int Rabbitmq_Init(Tcl_Interp *tclInterpreter) {
 
         brokerConnections[i].connected = 0;
     }
+}
 
-    // Provides a TCL package
+/**
+ * Provides TCL package
+ *
+ * @param[out] tclInterpreter The current TCL interpreter
+ */
+int tcl_provide_package(Tcl_Interp *tclInterpreter) {
+    int result;
 
-    result = Tcl_PkgProvide(tclInterpreter, "rabbitmq", RABBITMQ_TCL_VERSION);
-    if (result == TCL_ERROR) {
+    result = Tcl_PkgProvide(tclInterpreter, RABBITMQ_TCL_PACKAGE_NAME,
+                            RABBITMQ_TCL_PACKAGE_VERSION);
+    return (result != TCL_ERROR);
+}
+
+/**
+ * Initializes the library and provide mq commands
+ *
+ * @param[out] tclInterpreter The current TCL interpreter to provide commands to
+ * @return TCL_OK on success; otherwise, TCL_ERROR
+ */
+int Rabbitmq_Init(Tcl_Interp *tclInterpreter) {
+    if (!tcl_init(tclInterpreter)) {
         return TCL_ERROR;
     }
+
+    tcl_create_commands(tclInterpreter);
+
+    if (!tcl_provide_package(tclInterpreter)) {
+        return TCL_ERROR;
+    }
+
     return TCL_OK;
 }

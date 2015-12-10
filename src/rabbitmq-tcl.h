@@ -43,4 +43,7 @@ int mq_version(Tcl_Interp *tclInterpreter);
 
 int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
 
+void tcl_create_commands(Tcl_Interp *tclInterpreter);
 int tcl_error(Tcl_Interp *tclInterpreter, char *error);
+int tcl_init(Tcl_Interp *tclInterpreter);
+int tcl_provide_package(Tcl_Interp *tclInterpreter);

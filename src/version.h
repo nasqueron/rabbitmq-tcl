@@ -30,4 +30,7 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
 #define RABBITMQ_TCL_PRODUCT_NAME "RabbitMQ TCL"
-#define RABBITMQ_TCL_VERSION "0.1.0"
+#define RABBITMQ_TCL_PRODUCT_VERSION "0.1.0"
+
+#define RABBITMQ_TCL_PACKAGE_NAME "rabbitmq"
+#define RABBITMQ_TCL_PACKAGE_VERSION RABBITMQ_TCL_PRODUCT_VERSION
