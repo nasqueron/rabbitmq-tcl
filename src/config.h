@@ -49,3 +49,6 @@
 #define BROKER_USER "guest"
 #define BROKER_PASS "guest"
 #define BROKER_VHOST "/"
+
+// The exchange to use to publish messages to queues
+#define BROKER_DEFAULT_EXCHANGE "amq.direct"
