@@ -275,7 +275,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
  * mq disconnect
  *
  * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
- * @param[out] tclInetrpreter The interpreter in which to create new command
+ * @param[out] tclInterpreter The interpreter in which to create new command
  * @return TCL_OK on success, TCL_ERROR if not connected
  */
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
