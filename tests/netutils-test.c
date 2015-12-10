@@ -37,8 +37,6 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
 static void test_get_host(void **state) {
-    (void) state; /* unused */
-
     assert_string_equal("alpha", get_host("alpha:5000", "localhost"));
     assert_string_equal("beta", get_host("beta", "localhost"));
     assert_string_equal("delta", get_host("", "delta"));
@@ -46,8 +44,6 @@ static void test_get_host(void **state) {
 }
 
 static void test_get_port(void **state) {
-    (void) state; /* unused */
-
     assert_int_equal(5000, get_port("alpha:5000", 1234));
     assert_int_equal(1234, get_port("beta", 1234));
     assert_int_equal(5000, get_port(":5000", 1234));
