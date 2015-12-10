@@ -5,3 +5,6 @@
 # Libraries
 *.so
 *.so.*
+
+# Tests
+tests/test
