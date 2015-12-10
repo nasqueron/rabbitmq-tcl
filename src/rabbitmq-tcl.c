@@ -314,9 +314,9 @@ int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
 #ifdef WINDOWS
-extern __declspec(dllexport) int mq_init(Tcl_Interp *tclInterpreter);
+extern __declspec(dllexport) int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
 #else
-extern int mq_init(Tcl_Interp *tclInterpreter);
+extern int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
 #endif
 
 /**
