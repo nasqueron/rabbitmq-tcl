@@ -45,6 +45,9 @@ INCLUDES=-I$(TCL_INCLUDE) -I$(RABBITMQ_INCLUDE)
 
 LIBS=-ltcl${TCLVERSION} -lrabbitmq
 
+# Other options
+CCOPTS=-DDEBUG
+
 # Paths
 
 BUILD=../build

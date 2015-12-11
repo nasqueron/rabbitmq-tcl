@@ -51,4 +51,7 @@
 #define BROKER_VHOST "/"
 
 // The exchange to use to publish messages to queues
-#define BROKER_DEFAULT_EXCHANGE "amq.direct"
+#define BROKER_DEFAULT_EXCHANGE ""
+
+// The routing key to use by default
+#define BROKER_DEFAULT_ROUTING_KEY ""

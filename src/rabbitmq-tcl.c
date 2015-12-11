@@ -174,6 +174,8 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
         return mq_connect(connectionNumber, tclInterpreter, argc - 2, argv + 2);
     } else if (strcmp(command, "disconnect") == 0) {
         return mq_disconnect(connectionNumber, tclInterpreter);
+    } else if (strcmp(command, "publish") == 0) {
+        return mq_publish(connectionNumber, tclInterpreter, argc - 2, argv + 2);
     } else if (strcmp(command, "version") == 0) {
         return mq_version(tclInterpreter);
     } else {
@@ -318,6 +320,108 @@ int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
     }
 
     amqp_destroy_connection(conn);
+    return TCL_OK;
+}
+
+/**
+ *
+ * mq publish <target> [-key <routing key>] [-mandatory] [-immediate] <message>
+ *
+ * The target could be: <exchange>, -exchange <exchange> or -queue <queue>
+ *
+ * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
+ * @param[out] tclInterpreter The interpreter calling this function
+ * @param[in] argc The amount of command arguments
+ * @param[in] argv The command arguments
+ * @return TCL_OK on success, TCL_ERROR if already connected or can't connect
+ */
+int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
+               Tcl_Obj *const argv[]) {
+    int i;
+    amqp_connection_state_t conn;
+    amqp_rpc_reply_t result;
+    char *argument, *exchange, *routingKey, *content;
+    int contentParsed = 0;
+    int targetParsed = 0;
+    int routingKeyParsed = 0;
+    int mustRouteToQueue = 0;                 // -mandatory
+    int mustImmediatelyDeliverToConsumer = 0; // -immediate
+
+    // Parses arguments
+    for (i = 0; i < argc; i++) {
+        argument = Tcl_GetString(argv[i]);
+        if (strcmp(argument, "-key") == 0) {
+            if (argc < i + 2) {
+                return tcl_error(tclInterpreter,
+                                 "Required routing key argument missing.");
+            }
+            routingKey = Tcl_GetString(argv[++i]);
+            routingKeyParsed = 1;
+        } else if (strcmp(argument, "-mandatory") == 0) {
+            mustRouteToQueue = 1;
+        } else if (strcmp(argument, "-immediate") == 0) {
+            mustImmediatelyDeliverToConsumer = 1;
+        } else if (strcmp(argument, "-exchange") == 0) {
+            if (argc < i + 2) {
+                return tcl_error(tclInterpreter,
+                                 "Required exchange argument missing.");
+            }
+            exchange = Tcl_GetString(argv[++i]);
+            targetParsed = 1;
+        } else if (strcmp(argument, "-queue") == 0) {
+            if (argc < i + 2) {
+                return tcl_error(tclInterpreter,
+                                 "Required queue argument missing.");
+            }
+            exchange = BROKER_DEFAULT_EXCHANGE;
+            routingKey = Tcl_GetString(argv[++i]);
+            targetParsed = 1;
+            routingKeyParsed = 1;
+        } else if (i == 0) {
+            exchange = Tcl_GetString(argv[0]);
+            targetParsed = 1;
+        } else {
+            content = Tcl_GetString(argv[i]);
+            contentParsed = 1;
+        }
+    }
+
+    if (!routingKeyParsed) {
+        routingKey = BROKER_DEFAULT_ROUTING_KEY;
+    }
+
+    // Throw error when we haven't enough information (what and where)
+
+    if (!targetParsed) {
+        return tcl_error(tclInterpreter, "Required message target missing.");
+    }
+
+    if (!contentParsed) {
+        return tcl_error(tclInterpreter,
+                         "Required message content argument missing.");
+    }
+
+    // Sends the message and checks the result
+
+    conn = brokerConnections[connectionNumber].connection;
+    amqp_basic_publish(conn, 1, amqp_cstring_bytes(exchange),
+                       amqp_cstring_bytes(routingKey), mustRouteToQueue,
+                       mustImmediatelyDeliverToConsumer, NULL,
+                       amqp_cstring_bytes(content));
+
+    if (amqp_get_error(conn, &result)) {
+        return tcl_amqp_error(tclInterpreter, "Can't publish message:", result);
+    }
+
+#ifdef DEBUG
+    char *debugMessage = malloc(1024 * sizeof(char) + sizeof(content));
+    sprintf(
+        debugMessage,
+        "Message published to exchange '%s', routing key '%s'. Content: '%s'.",
+        exchange, routingKey, content);
+    Tcl_SetResult(tclInterpreter, debugMessage, TCL_STATIC);
+#endif
+
     return TCL_OK;
 }
 
