@@ -40,6 +40,13 @@ struct broker_connection {
     amqp_connection_state_t connection;
 } brokerConnections[MQ_COMMANDS_AMOUNT];
 
+/**
+ * Represents the client data information for a command.
+ */
+struct command_context {
+    int commandNumber;
+};
+
 /*  -------------------------------------------------------------
     Helper functions
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
@@ -150,18 +157,24 @@ int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
  * @return TCL_OK, TCL_ERROR, TCL_RETURN, TCL_BREAK or TCL_CONTINUE
  */
 static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
-                      int argc, char **argv) {
+                      int argc, Tcl_Obj *const argv[]) {
+    int connectionNumber;
+    char *command;
+    struct command_context *context;
+
     if (argc <= 1) {
         return mq_usage(tclInterpreter);
     }
 
-    int connectionNumber = (int)clientData;
+    context = clientData;
+    connectionNumber = context->commandNumber;
+    command = Tcl_GetString(argv[1]);
 
-    if (strcmp(argv[1], "connect") == 0) {
+    if (strcmp(command, "connect") == 0) {
         return mq_connect(connectionNumber, tclInterpreter, argc - 2, argv + 2);
-    } else if (strcmp(argv[1], "disconnect") == 0) {
+    } else if (strcmp(command, "disconnect") == 0) {
         return mq_disconnect(connectionNumber, tclInterpreter);
-    } else if (strcmp(argv[1], "version") == 0) {
+    } else if (strcmp(command, "version") == 0) {
         return mq_version(tclInterpreter);
     } else {
         return mq_usage(tclInterpreter);
@@ -199,9 +212,9 @@ int mq_version(Tcl_Interp *tclInterpreter) {
  * @return TCL_OK on success, TCL_ERROR if already connected or can't connect
  */
 int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
-               char **argv) {
+               Tcl_Obj *const argv[]) {
 
-    char *host, *user, *pass, *vhost;
+    char *host, *hostPortExpression, *user, *pass, *vhost;
     int port, status;
     amqp_connection_state_t conn;
     amqp_socket_t *socket;
@@ -216,24 +229,25 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     // Connection parameters
 
     if (argc > 0 && argv[0]) {
-        host = get_host(argv[0], BROKER_HOST);
-        port = get_port(argv[0], BROKER_PORT);
+        hostPortExpression = Tcl_GetString(argv[0]);
+        host = get_host(hostPortExpression, BROKER_HOST);
+        port = get_port(hostPortExpression, BROKER_PORT);
     } else {
         host = BROKER_HOST;
         port = BROKER_PORT;
     }
     if (argc > 1 && argv[1]) {
-        user = argv[1];
+        user = Tcl_GetString(argv[1]);
     } else {
         user = BROKER_USER;
     }
     if (argc > 2 && argv[2]) {
-        pass = argv[2];
+        pass = Tcl_GetString(argv[2]);
     } else {
         pass = BROKER_PASS;
     }
     if (argc > 3 && argv[3]) {
-        vhost = argv[3];
+        vhost = Tcl_GetString(argv[3]);
     } else {
         vhost = BROKER_VHOST;
     }
@@ -266,7 +280,6 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     }
 
     // We're connected. All is good.
-
     brokerConnections[connectionNumber].connection = conn;
     brokerConnections[connectionNumber].connected = 1;
     return TCL_OK;
@@ -347,6 +360,18 @@ int tcl_init(Tcl_Interp *tclInterpreter) {
 }
 
 /**
+ * Gets command context
+ *
+ * @param commandNumber The command number (3 for mq3)
+ * @return the command context
+ */
+ClientData get_mq_command_context(int commandNumber) {
+    struct command_context *context = malloc(sizeof(int));
+    context->commandNumber = commandNumber;
+    return context;
+}
+
+/**
  * Creates TCL commands
  *
  * @param[out] tclInterpreter The current TCL interpreter
@@ -363,8 +388,9 @@ void tcl_create_commands(Tcl_Interp *tclInterpreter) {
             sprintf(commandName, "mq%d", i);
         }
 
-        Tcl_CreateCommand(tclInterpreter, commandName, mq_command,
-                          (ClientData)i, (Tcl_CmdDeleteProc *)NULL);
+        Tcl_CreateObjCommand(tclInterpreter, commandName, mq_command,
+                             get_mq_command_context(i),
+                             (Tcl_CmdDeleteProc *)NULL);
 
         brokerConnections[i].connected = 0;
     }

@@ -31,12 +31,13 @@
     Functions explicit declaration (by alphabetical order)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
+ClientData get_mq_command_context(int commandNumber);
 char *get_version_string();
 
 static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
-                      int argc, char **argv);
+                      int argc, Tcl_Obj *const argv[]);
 int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
-               char **argv);
+               Tcl_Obj *const argv[]);
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter);
 int mq_usage(Tcl_Interp *tclInterpreter);
 int mq_version(Tcl_Interp *tclInterpreter);
