@@ -144,7 +144,7 @@ int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
  * mq command
  *
  * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
- * @param[out] tclInterpreter The interpreter in which to create new command
+ * @param[out] tclInterpreter The interpreter calling this function
  * @param[in] argc The amount of command arguments
  * @param[in] argv The command arguments
  * @return TCL_OK, TCL_ERROR, TCL_RETURN, TCL_BREAK or TCL_CONTINUE
@@ -174,13 +174,14 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
  * @param[out] tclInterpreter The interpreter to send command result to
  */
 int mq_usage(Tcl_Interp *tclInterpreter) {
-    return tcl_error(tclInterpreter, "Usage: mq <connect|disconnect|version>");
+    return tcl_error(tclInterpreter,
+                     "Usage: mq <connect|disconnect|publish|version>");
 }
 
 /**
  * mq version
  *
- * @param[out] tclInterpreter The interpreter in which to create new command
+ * @param[out] tclInterpreter The interpreter calling this function
  * @return TCL_OK
  */
 int mq_version(Tcl_Interp *tclInterpreter) {
@@ -192,7 +193,7 @@ int mq_version(Tcl_Interp *tclInterpreter) {
  * mq connect
  *
  * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
- * @param[out] tclInterpreter The interpreter in which to create new command
+ * @param[out] tclInterpreter The interpreter calling this function
  * @param[in] argc The amount of command arguments
  * @param[in] argv The command arguments
  * @return TCL_OK on success, TCL_ERROR if already connected or can't connect
@@ -275,7 +276,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
  * mq disconnect
  *
  * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
- * @param[out] tclInterpreter The interpreter in which to create new command
+ * @param[out] tclInterpreter The interpreter calling this function
  * @return TCL_OK on success, TCL_ERROR if not connected
  */
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
