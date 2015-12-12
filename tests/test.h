@@ -1,5 +1,5 @@
 /*  -------------------------------------------------------------
-    RabbitMQ TCL - Unit testing - Net helper functions
+    RabbitMQ TCL - Unit testing - Headers
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
      ___  __ \_____ ___  /____  /____(_)_  /___   |/  /_  __ \
@@ -16,8 +16,8 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Software:       RabbitMQ TCL
     Author:         Sébastien Santoro aka Dereckson
-    Filename:       config.h
-    Created:        2015-12-08
+    Filename:       test.h
+    Created:        2015-12-12
     Licence:        BSD-2-Clause
     -------------------------------------------------------------    */
 
@@ -26,38 +26,14 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
+/*  -------------------------------------------------------------
+    Utils
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
+
+// Code to test
+
 #include "../src/utils/netutils.h"
 #include "../src/utils/netutils.c"
 
-/*  -------------------------------------------------------------
-    get_host, get_port
-
-    char *get_host(const char *expression, const char *defaultHost);
-    int get_port(const char *expression, int defaultPort);
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
-
-static void test_get_host(void **state) {
-    assert_string_equal("alpha", get_host("alpha:5000", "localhost"));
-    assert_string_equal("beta", get_host("beta", "localhost"));
-    assert_string_equal("delta", get_host("", "delta"));
-    assert_string_equal("gamma", get_host(":5000", "gamma"));
-}
-
-static void test_get_port(void **state) {
-    assert_int_equal(5000, get_port("alpha:5000", 1234));
-    assert_int_equal(1234, get_port("beta", 1234));
-    assert_int_equal(5000, get_port(":5000", 1234));
-    assert_int_equal(1234, get_port("", 1234));
-}
-
-/*  -------------------------------------------------------------
-    Test entry point
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
-
-int main(void) {
-    const UnitTest tests[] = {
-        unit_test(test_get_host),
-        unit_test(test_get_port),
-    };
-    return run_tests(tests);
-}
+// Tests
+#include "netutils.test.c"

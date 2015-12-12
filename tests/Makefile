@@ -61,4 +61,4 @@ retest: clean runtest
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 test:
-	${CC} netutils-test.c -o test
+	${CC} test.c -o test
