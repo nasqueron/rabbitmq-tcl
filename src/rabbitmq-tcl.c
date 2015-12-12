@@ -401,6 +401,11 @@ int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                          "Required message content argument missing.");
     }
 
+    // Ensures we're connected
+    if (brokerConnections[connectionNumber].connected == 0) {
+        return tcl_error(tclInterpreter, "Not connected.");
+    }
+
     // Sends the message and checks the result
 
     conn = brokerConnections[connectionNumber].connection;
