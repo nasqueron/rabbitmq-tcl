@@ -1,5 +1,5 @@
 /*  -------------------------------------------------------------
-    RabbitMQ TCL - Unit testing - Headers
+    RabbitMQ TCL - Unit testing - String helper functions
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
      ___  __ \_____ ___  /____  /____(_)_  /___   |/  /_  __ \
@@ -16,27 +16,23 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Software:       RabbitMQ TCL
     Author:         Sébastien Santoro aka Dereckson
-    Filename:       test.h
+    Filename:       strpos.test
     Created:        2015-12-12
     Licence:        BSD-2-Clause
     -------------------------------------------------------------    */
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-
 /*  -------------------------------------------------------------
-    Utils
+    strpos
+
+    int strpos(const char *haystack, const char *needle)
+    STR_NOT_FOUND
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
-// Code to test
+static void test_strpos(void **state) {
+    assert_int_equal(STR_NOT_FOUND, strpos("alpha:5000", "1234"));
+    assert_int_equal(0, strpos("alpha:5000", "alpha"));
+    assert_int_equal(5, strpos("alpha:5000", ":"));
 
-#include "../src/utils/netutils.h"
-#include "../src/utils/netutils.c"
-/* strpos.h is included by netutils.c */
-
-// Tests
-
-#include "netutils.test.c"
-#include "strpos.test.c"
+    assert_int_equal(STR_NOT_FOUND, strpos("", "foo"));
+    assert_int_equal(0, strpos("foo", ""));
+}

@@ -36,6 +36,9 @@ int main(void) {
     const UnitTest tests[] = {
         // netutils
         unit_test(test_get_host), unit_test(test_get_port),
+
+        // strpos
+        unit_test(test_strpos),
     };
     return run_tests(tests);
 }
