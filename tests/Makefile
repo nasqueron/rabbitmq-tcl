@@ -24,13 +24,22 @@
 #                                                                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+# 3rd party versions
+
+TCLVERSION=8.6
+
+# Headers to include
+
+TCL_INCLUDE=/usr/include/tcl${TCLVERSION}
+INCLUDES=-I$(TCL_INCLUDE)
+
 # Libraries to use
 
-LIBS=-lcmocka
+LIBS=-lcmocka -ltcl -lrabbitmq
 
 # Commands to use
 
-CC=clang ${LIBS}
+CC=clang ${INCLUDES} ${LIBS}
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                             #

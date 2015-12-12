@@ -64,6 +64,16 @@ char *get_version_string() {
 }
 
 /**
+ * Determines if the specified connection slot is currently connected
+ *
+ * @param connectionNumber the number of the connection to check
+ * @return 1 if connected, 0 if disconnected
+ */
+int is_mq_connected(int connectionNumber) {
+    return brokerConnections[connectionNumber].connected;
+}
+
+/**
  * Prints an error message as command result and notify TCL an error occured.
  *
  * @param[out] tclInterpreter The interpreter in which to set result
@@ -224,7 +234,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
 
     // We don't allow to reconnect without first used mq disconnect
 
-    if (brokerConnections[connectionNumber].connected == 1) {
+    if (is_mq_connected(connectionNumber)) {
         return tcl_error(tclInterpreter, "Already connected.");
     }
 
@@ -297,7 +307,7 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
     amqp_rpc_reply_t result;
 
-    if (brokerConnections[connectionNumber].connected == 0) {
+    if (!is_mq_connected(connectionNumber)) {
         return tcl_error(tclInterpreter, "Not connected.");
     }
 
@@ -401,7 +411,7 @@ int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     }
 
     // Ensures we're connected
-    if (brokerConnections[connectionNumber].connected == 0) {
+    if (!is_mq_connected(connectionNumber)) {
         return tcl_error(tclInterpreter, "Not connected.");
     }
 

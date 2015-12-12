@@ -40,3 +40,16 @@
 
 #include "netutils.test.c"
 #include "strpos.test.c"
+
+/*  -------------------------------------------------------------
+    Extension
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
+
+// Code to test
+
+#include "../src/rabbitmq-tcl.h"
+#include "../src/rabbitmq-tcl.c"
+
+// Tests
+
+#include "helper-functions.test.c"

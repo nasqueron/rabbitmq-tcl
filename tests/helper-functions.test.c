@@ -1,5 +1,5 @@
 /*  -------------------------------------------------------------
-    RabbitMQ TCL - Unit testing - String helper functions
+    RabbitMQ TCL - Unit testing - RabbitMQ helper functions
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
      ___  __ \_____ ___  /____  /____(_)_  /___   |/  /_  __ \
@@ -16,32 +16,25 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Software:       RabbitMQ TCL
     Author:         Sébastien Santoro aka Dereckson
-    Filename:       test.c
+    Filename:       helper-functions.test.c
     Created:        2015-12-12
     Licence:        BSD-2-Clause
     -------------------------------------------------------------    */
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-
-#include "test.h"
-
 /*  -------------------------------------------------------------
-    Test entry point
+    Broker helper functions
+
+    int is_mq_connected(int connectionNumber)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
-int main(void) {
-    const UnitTest tests[] = {
-        // netutils
-        unit_test(test_get_host), unit_test(test_get_port),
+static void test_is_mq_connected(void **state) {
+    assert_int_equal(0, is_mq_connected(0));
 
-        // strpos
-        unit_test(test_strpos),
+    brokerConnections[1].connected = 1; // TODO: mock mq_connect
+    assert_int_equal(0, is_mq_connected(0));
+    assert_int_equal(1, is_mq_connected(1));
 
-        // helper functions
-        unit_test(test_is_mq_connected),
-    };
-    return run_tests(tests);
+    brokerConnections[1].connected = 0; // TODO: mock mq_disconnect
+    assert_int_equal(0, is_mq_connected(0));
+    assert_int_equal(0, is_mq_connected(1));
 }
