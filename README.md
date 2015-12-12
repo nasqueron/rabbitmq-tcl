@@ -40,6 +40,19 @@ mq publish <target> [-key <routing key>] [-mandatory] [-immediate] <message>
 The target could be directly an exchange name, or use the following syntax:
 `[-exchange <exchange name>] [-queue <queue name>]`
 
+**To get a message:**
+
+The prefered way is asynchronously.
+
+But you can also use the synchronous basic.get implementation:
+
+```
+mq get <queue> [-noack]
+```
+
+Currently, basic.ack isn't implemented, so add -noack if you don't want the
+broker send again the same messages at the next session.
+
 ### Multiple connections
 
 If you need to use more than one connectionn, you've also aliases mq1 to mq10:

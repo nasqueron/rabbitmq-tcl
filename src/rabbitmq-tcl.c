@@ -74,6 +74,21 @@ int is_mq_connected(int connectionNumber) {
 }
 
 /**
+ * Determines if the connection will probably be non blocking
+ *
+ * @return 1 if the operation should be non blocking ; 0 on block
+ */
+int amqp_will_be_non_blocking_operation(amqp_connection_state_t connection) {
+    // See
+    // http://lists.rabbitmq.com/pipermail/rabbitmq-discuss/2012-February/018188.html
+    return amqp_frames_enqueued(connection) || amqp_data_in_buffer(connection);
+
+    // TODO: at the stage, we can try a third solution: run amqp_get_sockfd()
+    // to get the socket descriptor, then call select() or poll().
+    // If the socket can be read, we can return true.
+}
+
+/**
  * Prints an error message as command result and notify TCL an error occured.
  *
  * @param[out] tclInterpreter The interpreter in which to set result
@@ -111,7 +126,7 @@ int amqp_get_error(amqp_connection_state_t connection,
  * @return TCL_ERROR
  */
 int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
-                   amqp_rpc_reply_t rpcReply) {
+                   amqp_rpc_reply_t rpcReply, int connectionNumber) {
     char *error;
 
     if (rpcReply.reply_type == AMQP_RESPONSE_NORMAL) {
@@ -135,12 +150,16 @@ int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
                     "%s a server connection error %d occurred, message: %.*s",
                     errorContext, m->reply_code, (int)m->reply_text.len,
                     (char *)m->reply_text.bytes);
+            // Marks the connection as disconnected
+            brokerConnections[connectionNumber].connected = 0;
         } else if (rpcReply.reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
             amqp_channel_close_t *m =
                 (amqp_channel_close_t *)rpcReply.reply.decoded;
             sprintf(error, "%s a server channel error %d occurred: %.*s",
                     errorContext, m->reply_code, (int)m->reply_text.len,
                     (char *)m->reply_text.bytes);
+            // Marks the connection as disconnected
+            brokerConnections[connectionNumber].connected = 0;
         } else {
             sprintf(error,
                     "%s an unknown server error occurred, method id 0x%08X",
@@ -184,6 +203,8 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
         return mq_connect(connectionNumber, tclInterpreter, argc - 2, argv + 2);
     } else if (strcmp(command, "disconnect") == 0) {
         return mq_disconnect(connectionNumber, tclInterpreter);
+    } else if (strcmp(command, "get") == 0) {
+        return mq_get(connectionNumber, tclInterpreter, argc - 2, argv + 2);
     } else if (strcmp(command, "publish") == 0) {
         return mq_publish(connectionNumber, tclInterpreter, argc - 2, argv + 2);
     } else if (strcmp(command, "version") == 0) {
@@ -199,8 +220,9 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
  * @param[out] tclInterpreter The interpreter to send command result to
  */
 int mq_usage(Tcl_Interp *tclInterpreter) {
-    return tcl_error(tclInterpreter,
-                     "Usage: mq <connect|disconnect|publish|version>");
+    return tcl_error(
+        tclInterpreter,
+        "Usage: mq <connect|disconnect|get|publish|version>");
 }
 
 /**
@@ -288,7 +310,8 @@ int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     // Opens a first channel
     amqp_channel_open(conn, 1);
     if (amqp_get_error(conn, &result)) {
-        return tcl_amqp_error(tclInterpreter, "Can't open a channel:", result);
+        return tcl_amqp_error(tclInterpreter, "Can't open a channel:", result,
+                              connectionNumber);
     }
 
     // We're connected. All is good.
@@ -321,15 +344,92 @@ int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
     result = amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
         return tcl_amqp_error(tclInterpreter,
-                              "An error occured closing channel:", result);
+                              "An error occured closing channel:", result,
+                              connectionNumber);
     }
     result = amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
         return tcl_amqp_error(tclInterpreter,
-                              "An error occured closing connection:", result);
+                              "An error occured closing connection:", result,
+                              connectionNumber);
     }
 
     amqp_destroy_connection(conn);
+    return TCL_OK;
+}
+
+/**
+ * mq get <queue> [-noack]
+ */
+int mq_get(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
+           Tcl_Obj *const argv[]) {
+    char *queue;
+    char *argument;
+    char *error;
+    char *messageBody;
+    amqp_boolean_t noAck = 0;
+
+    amqp_connection_state_t conn;
+    amqp_rpc_reply_t result;
+    amqp_message_t message;
+
+    // Parses arguments
+    if (argc == 0) {
+        return tcl_error(tclInterpreter, "Required queue missing.");
+    }
+    queue = Tcl_GetString(argv[0]);
+
+    if (argc > 1) {
+        argument = Tcl_GetString(argv[1]);
+        if (strcmp(argument, "-noack") == 0) {
+            noAck = 1;
+        } else {
+            error = malloc(1024 * sizeof(char));
+            sprintf(error, "Unknown argument: %s", argument);
+            return tcl_error(tclInterpreter, error);
+        }
+    }
+    if (argc > 2) {
+        return tcl_error(tclInterpreter, "Too many arguments.");
+    }
+
+    // Ensures we're connected
+    if (!is_mq_connected(connectionNumber)) {
+        return tcl_error(tclInterpreter, "Not connected.");
+    }
+    conn = brokerConnections[connectionNumber].connection;
+
+    // Gets message from specified queue (basic.get operation)
+    result = amqp_basic_get(conn, 1, amqp_cstring_bytes(queue), noAck);
+    if (amqp_get_error(conn, &result)) {
+        return tcl_amqp_error(tclInterpreter, "Can't get message from queue:",
+                              result, connectionNumber);
+    }
+
+    if (!amqp_will_be_non_blocking_operation(conn)) {
+        // We can't assert the operation will be non blocking
+        return TCL_OK;
+    }
+
+    result = amqp_read_message(conn, 1, &message, 0);
+    if (amqp_get_error(conn, &result)) {
+        return tcl_amqp_error(tclInterpreter, "Can't read message:", result,
+                              connectionNumber);
+    }
+
+    if (&message && &(message.body)) {
+        messageBody = malloc(message.body.len + 1024);
+        sprintf(messageBody, "%.*s", (int)message.body.len,
+                (char *)message.body.bytes);
+
+        // Cleans up
+        amqp_destroy_message(&message);
+        amqp_maybe_release_buffers(conn);
+    }
+
+    // TCL return
+    Tcl_SetResult(tclInterpreter, messageBody, TCL_STATIC);
+
     return TCL_OK;
 }
 
@@ -423,7 +523,8 @@ int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                        amqp_cstring_bytes(content));
 
     if (amqp_get_error(conn, &result)) {
-        return tcl_amqp_error(tclInterpreter, "Can't publish message:", result);
+        return tcl_amqp_error(tclInterpreter, "Can't publish message:", result,
+                              connectionNumber);
     }
 
 #ifdef DEBUG

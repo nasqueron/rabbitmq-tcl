@@ -21,6 +21,7 @@
     Licence:        BSD-2-Clause
     -------------------------------------------------------------    */
 
+#include <amqp.h>
 #include <tcl.h>
 
 /*  -------------------------------------------------------------
@@ -33,6 +34,8 @@
     Functions explicit declaration (by alphabetical order)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
+int amqp_will_be_non_blocking_operation(amqp_connection_state_t connection);
+
 ClientData get_mq_command_context(int commandNumber);
 char *get_version_string();
 
@@ -41,6 +44,8 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
 int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                Tcl_Obj *const argv[]);
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter);
+int mq_get(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
+           Tcl_Obj *const argv[]);
 int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                Tcl_Obj *const argv[]);
 int mq_usage(Tcl_Interp *tclInterpreter);
