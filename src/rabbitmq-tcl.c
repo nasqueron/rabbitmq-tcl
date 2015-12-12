@@ -390,7 +390,7 @@ int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
         routingKey = BROKER_DEFAULT_ROUTING_KEY;
     }
 
-    // Throw error when we haven't enough information (what and where)
+    // Throws error when we haven't enough information (what and where)
 
     if (!targetParsed) {
         return tcl_error(tclInterpreter, "Required message target missing.");
