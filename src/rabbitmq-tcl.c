@@ -391,7 +391,6 @@ int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     }
 
     // Throws error when we haven't enough information (what and where)
-
     if (!targetParsed) {
         return tcl_error(tclInterpreter, "Required message target missing.");
     }
@@ -407,7 +406,6 @@ int mq_publish(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     }
 
     // Sends the message and checks the result
-
     conn = brokerConnections[connectionNumber].connection;
     amqp_basic_publish(conn, 1, amqp_cstring_bytes(exchange),
                        amqp_cstring_bytes(routingKey), mustRouteToQueue,
