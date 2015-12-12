@@ -18,18 +18,29 @@ make
 
 ### How to use it?
 
-To load the library:
+**To load the library:**
 
 ```
 load rabbitmq.so
 ```
 
-You'll then got a mq command to interact with your broker:
+**You'll then got a mq command to interact with your broker:**
 
 ```
-mq connect broker.domain.tld username password
+mq connect [broker.domain.tld[:port]] [username] [password] [vhost]
 mq disconnect
 ```
+
+**To publish a message:**
+
+```
+mq publish <target> [-key <routing key>] [-mandatory] [-immediate] <message>
+```
+
+The target could be directly an exchange name, or use the following syntax:
+`[-exchange <exchange name>] [-queue <queue name>]`
+
+### Multiple connections
 
 If you need to use more than one connectionn, you've also aliases mq1 to mq10:
 
