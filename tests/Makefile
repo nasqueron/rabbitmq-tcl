@@ -52,7 +52,10 @@ CC=clang ${INCLUDES} ${LIBS}
 all: runtest
 
 runtest: test
+	@echo [ Part I - C tests ]
 	./test
+	@echo [ Part II - TCL tests ]
+	tclsh${TCLVERSION} tests.tcl
 
 clean:
 	rm -f test

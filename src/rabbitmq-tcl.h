@@ -43,6 +43,7 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
                       int argc, Tcl_Obj *const argv[]);
 int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                Tcl_Obj *const argv[]);
+int mq_connected(int connectionNumber, Tcl_Interp *tclInterpreter);
 int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter);
 int mq_get(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
            Tcl_Obj *const argv[]);

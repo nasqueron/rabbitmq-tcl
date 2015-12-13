@@ -201,6 +201,8 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
 
     if (strcmp(command, "connect") == 0) {
         return mq_connect(connectionNumber, tclInterpreter, argc - 2, argv + 2);
+    } else if (strcmp(command, "connected") == 0) {
+        return mq_connected(connectionNumber, tclInterpreter);
     } else if (strcmp(command, "disconnect") == 0) {
         return mq_disconnect(connectionNumber, tclInterpreter);
     } else if (strcmp(command, "get") == 0) {
@@ -222,7 +224,7 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
 int mq_usage(Tcl_Interp *tclInterpreter) {
     return tcl_error(
         tclInterpreter,
-        "Usage: mq <connect|disconnect|get|publish|version>");
+        "Usage: mq <connect|connected|disconnect|get|publish|version>");
 }
 
 /**
@@ -355,6 +357,20 @@ int mq_disconnect(int connectionNumber, Tcl_Interp *tclInterpreter) {
     }
 
     amqp_destroy_connection(conn);
+    return TCL_OK;
+}
+
+/**
+ * mq connected
+ *
+ * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
+ * @param[out] tclInterpreter The interpreter calling this function
+ * @return TCL_OK
+ */
+int mq_connected(int connectionNumber, Tcl_Interp *tclInterpreter) {
+    char *reply = malloc(2 * sizeof(char));
+    sprintf(reply, "%d", is_mq_connected(connectionNumber));
+    Tcl_SetResult(tclInterpreter, reply, TCL_STATIC);
     return TCL_OK;
 }
 
