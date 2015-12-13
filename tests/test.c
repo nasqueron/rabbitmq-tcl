@@ -1,5 +1,5 @@
 /*  -------------------------------------------------------------
-    RabbitMQ TCL - Unit testing - String helper functions
+    RabbitMQ TCL - Unit testing
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
      ___  __ \_____ ___  /____  /____(_)_  /___   |/  /_  __ \
