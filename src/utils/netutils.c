@@ -23,7 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "strpos.h"
+#include "strutils.h"
 
 /*  -------------------------------------------------------------
     Parse host:port expression helper functions

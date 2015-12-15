@@ -1,5 +1,5 @@
 /*  -------------------------------------------------------------
-    RabbitMQ TCL - String utilities
+    RabbitMQ TCL - Unit testing - String helper functions
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
      ___  __ \_____ ___  /____  /____(_)_  /___   |/  /_  __ \
@@ -16,36 +16,33 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Software:       RabbitMQ TCL
     Author:         Sébastien Santoro aka Dereckson
-    Filename:       strpos.h
-    Created:        2015-12-08
+    Filename:       strpos.test
+    Created:        2015-12-12
     Licence:        BSD-2-Clause
     -------------------------------------------------------------    */
 
-#include <string.h>
-
 /*  -------------------------------------------------------------
-    Magic constants
+    strutils
+
+    int strpos(const char *haystack, const char *needle)
+    char *str_replace(const char *needle, const char *replace, *haystack)
+    STR_NOT_FOUND
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
-#define STR_NOT_FOUND -1
+static void test_strpos(void **state) {
+    assert_int_equal(STR_NOT_FOUND, strpos("alpha:5000", "1234"));
+    assert_int_equal(0, strpos("alpha:5000", "alpha"));
+    assert_int_equal(5, strpos("alpha:5000", ":"));
 
-/*  -------------------------------------------------------------
-    Common string functions: strpos
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
+    assert_int_equal(STR_NOT_FOUND, strpos("", "foo"));
+    assert_int_equal(0, strpos("foo", ""));
+}
 
-/**
- * Finds the position of the first occurrence of a substring in a string
- *
- * @param[in] haystack The string to search in
- * @param[in] needle The string to search
- * @return The position of where the needle exists, or STR_NOT_FOUND
- */
-int strpos(const char *haystack, const char *needle) {
-    // http://stackoverflow.com/a/7655509/1930997 - snippet by Miere
-    char *p = strstr(haystack, needle);
-
-    if (p)
-        return p - haystack;
-
-    return STR_NOT_FOUND;
+static void test_str_replace(void **state) {
+    assert_string_equal("alpha:1234",
+                        str_replace("5000", "1234", "alpha:5000"));
+    assert_string_equal("alpha:1234", str_replace("", "", "alpha:1234"));
+    assert_string_equal("alpha", str_replace(":1234", "", "alpha:1234"));
+    assert_string_equal("", str_replace("5000", "1234", ""));
+    assert_string_equal("", str_replace("", "", ""));
 }

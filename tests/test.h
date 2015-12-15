@@ -34,12 +34,12 @@
 
 #include "../src/utils/netutils.h"
 #include "../src/utils/netutils.c"
-/* strpos.h is included by netutils.c */
+/* strutils.h is included by netutils.c */
 
 // Tests
 
 #include "netutils.test.c"
-#include "strpos.test.c"
+#include "strutils.test.c"
 
 /*  -------------------------------------------------------------
     Extension
