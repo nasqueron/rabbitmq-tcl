@@ -71,12 +71,23 @@ TCLSH=tclsh${TCLVERSION}
 #                                                                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Main targets
+# Main build targets
 
-all: print-banner ${BUILD}/rabbitmq.so
+all: print-banner lib pkg
 
-clean:
+clean: cleanlib cleanpkg
+
+# Build steps targets
+
+lib: ${BUILD}/rabbitmq.so
+
+pkg: ${BUILD}/pkgIndex.tcl
+
+cleanlib:
 	$(RM) core ${BUILD}/*.o ${BUILD}/*.so ${BUILD}/*.so.${VERSION}
+
+cleanpkg:
+	$(RM) ${BUILD}/makePkgIndex ${BUILD}/pkgIndex.tcl
 
 # Dev targets
 
@@ -111,3 +122,10 @@ ${BUILD}/rabbitmq.o:
 	${MKDIR} ${BUILD}
 	${CC} -c -fPIC utils/netutils.c -o ${BUILD}/netutils.o
 	${CC} -c -fPIC rabbitmq-tcl.c -o ${BUILD}/rabbitmq.o
+
+${BUILD}/makePkgIndex:
+	${MKDIR} ${BUILD}
+	${CC} makePkgIndex.c -o ${BUILD}/makePkgIndex
+
+${BUILD}/pkgIndex.tcl: ${BUILD}/makePkgIndex
+	${BUILD}/makePkgIndex pkgIndex.tcl.in > ${BUILD}/pkgIndex.tcl

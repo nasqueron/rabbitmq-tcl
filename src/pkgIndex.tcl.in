@@ -1,0 +1,4 @@
+# Package index for %%PACKAGE_NAME%%
+
+package ifneeded %%PACKAGE_NAME%% %%PACKAGE_VERSION%% \
+    [list load [file join [list $dir] %%PACKAGE_NAME%%[info sharedlibextension]]]
