@@ -198,7 +198,10 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
     connectionNumber = context->commandNumber;
     command = Tcl_GetString(argv[1]);
 
-    if (strcmp(command, "connect") == 0) {
+    if (strcmp(command, "bindqueue") == 0) {
+        return mq_bindqueue(connectionNumber, tclInterpreter, argc - 2,
+                            argv + 2);
+    } else if (strcmp(command, "connect") == 0) {
         return mq_connect(connectionNumber, tclInterpreter, argc - 2, argv + 2);
     } else if (strcmp(command, "connected") == 0) {
         return mq_connected(connectionNumber, tclInterpreter);
@@ -221,9 +224,9 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
  * @param[out] tclInterpreter The interpreter to send command result to
  */
 int mq_usage(Tcl_Interp *tclInterpreter) {
-    return tcl_error(
-        tclInterpreter,
-        "Usage: mq <connect|connected|disconnect|get|publish|version>");
+    return tcl_error(tclInterpreter, "Usage: mq "
+                                     "<bindqueue|connect|connected|disconnect|"
+                                     "get|publish|version>");
 }
 
 /**
@@ -445,6 +448,78 @@ int mq_get(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
     // TCL return
     Tcl_SetResult(tclInterpreter, messageBody, TCL_STATIC);
 
+    return TCL_OK;
+}
+
+/**
+ * mq bindqueue <exchange> [binding key]
+ */
+int mq_bindqueue(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
+                 Tcl_Obj *const argv[]) {
+    char *exchange, *exchangeType, *bindingKey;
+    amqp_bytes_t queueName;
+    amqp_queue_declare_ok_t *queueResult;
+    amqp_connection_state_t conn;
+    amqp_rpc_reply_t result;
+
+    // Parses arguments
+    if (argc == 0) {
+        return tcl_error(tclInterpreter, "Argument required: exchange.");
+    }
+    exchange = Tcl_GetString(argv[0]);
+
+    if (argc > 1) {
+        bindingKey = Tcl_GetString(argv[1]);
+    } else {
+        bindingKey = BROKER_DEFAULT_BINDING_KEY;
+    }
+
+    if (argc > 2) {
+        return tcl_error(tclInterpreter, "Too many arguments.");
+    }
+
+    // Ensures we're connected
+    if (!is_mq_connected(connectionNumber)) {
+        return tcl_error(tclInterpreter, "Not connected.");
+    }
+
+    conn = brokerConnections[connectionNumber].connection;
+
+    // Declares the exchange
+    exchangeType = BROKER_DEFAULT_EXCHANGE_TYPE;
+    amqp_exchange_declare(conn, 1, amqp_cstring_bytes(exchange),
+                          amqp_cstring_bytes(exchangeType), 0, 0, 0, 0,
+                          amqp_empty_table);
+
+    if (amqp_get_error(conn, &result)) {
+        return tcl_amqp_error(tclInterpreter, "Can't declare exchange:", result,
+                              connectionNumber);
+    }
+
+    // Declares a new temporary queue
+    queueResult = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1,
+                                     amqp_empty_table);
+    if (amqp_get_error(conn, &result)) {
+        return tcl_amqp_error(tclInterpreter, "Can't declare queue:", result,
+                              connectionNumber);
+    }
+    queueName = amqp_bytes_malloc_dup(queueResult->queue);
+    if (queueName.bytes == NULL) {
+        return tcl_error(tclInterpreter,
+                         "Out of memory while copying queue name.");
+    }
+
+    // Binds it to the specified exchange
+    amqp_queue_bind(conn, 1, queueName, amqp_cstring_bytes(exchange),
+                    amqp_cstring_bytes(bindingKey), amqp_empty_table);
+    if (amqp_get_error(conn, &result)) {
+        return tcl_amqp_error(tclInterpreter, "Can't bind queue:", result,
+                              connectionNumber);
+    }
+
+    // Stores queue name as result
+    Tcl_SetObjResult(tclInterpreter,
+                     Tcl_NewStringObj(queueName.bytes, queueName.len));
     return TCL_OK;
 }
 

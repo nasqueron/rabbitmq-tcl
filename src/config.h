@@ -53,5 +53,11 @@
 // The exchange to use to publish messages to queues
 #define BROKER_DEFAULT_EXCHANGE ""
 
-// The routing key to use by default
+// The default exchange type when we need to create a non existing exchange
+#define BROKER_DEFAULT_EXCHANGE_TYPE "topic"
+
+// The routing key to use by default (used to publish to exchanges)
 #define BROKER_DEFAULT_ROUTING_KEY ""
+
+// The binding key to use by default (used to bind queues to exchanges)
+#define BROKER_DEFAULT_BINDING_KEY ""

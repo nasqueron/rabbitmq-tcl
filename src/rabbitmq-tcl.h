@@ -39,6 +39,8 @@ int amqp_will_be_non_blocking_operation(amqp_connection_state_t connection);
 ClientData get_mq_command_context(int commandNumber);
 char *get_version_string();
 
+int mq_bindqueue(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
+                 Tcl_Obj *const argv[]);
 static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
                       int argc, Tcl_Obj *const argv[]);
 int mq_connect(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,

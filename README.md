@@ -53,6 +53,21 @@ mq get <queue> [-noack]
 Currently, basic.ack isn't implemented, so add -noack if you don't want the
 broker send again the same messages at the next session.
 
+**To bind a queue to an exchange:**
+
+Creates a temporary autodelete queue
+
+```
+mq bindqueue <exchange> [bindingKey]
+```
+
+If the exchange doesn't exist, it will be created (in mode topic).
+
+With RabbitMQ, the queue will be named randomly starting by `amq.gen-` and be
+be deleted if consumed.
+
+Please note `mq get` doesn't consume, it provides direct access instead.
+
 ### Multiple connections
 
 If you need to use more than one connectionn, you've also aliases mq1 to mq10:
