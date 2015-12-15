@@ -29,8 +29,8 @@
     Version control repository tags should match library version.
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
-#define RABBITMQ_TCL_PRODUCT_NAME "RabbitMQ TCL"
-#define RABBITMQ_TCL_PRODUCT_VERSION "0.1.0"
+#define PRODUCT_NAME "RabbitMQ TCL"
+#define PRODUCT_VERSION "0.1.0"
 
-#define RABBITMQ_TCL_PACKAGE_NAME "rabbitmq"
-#define RABBITMQ_TCL_PACKAGE_VERSION RABBITMQ_TCL_PRODUCT_VERSION
+#define PACKAGE_NAME "rabbitmq"
+#define PACKAGE_VERSION PRODUCT_VERSION

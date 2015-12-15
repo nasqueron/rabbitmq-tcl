@@ -58,8 +58,7 @@ struct command_context {
  */
 char *get_version_string() {
     char *versionString = malloc(256 * sizeof(char));
-    sprintf(versionString, "%s %s", RABBITMQ_TCL_PRODUCT_NAME,
-            RABBITMQ_TCL_PRODUCT_VERSION);
+    sprintf(versionString, "%s %s", PRODUCT_NAME, PRODUCT_VERSION);
     return versionString;
 }
 
@@ -638,8 +637,7 @@ void tcl_create_commands(Tcl_Interp *tclInterpreter) {
 int tcl_provide_package(Tcl_Interp *tclInterpreter) {
     int result;
 
-    result = Tcl_PkgProvide(tclInterpreter, RABBITMQ_TCL_PACKAGE_NAME,
-                            RABBITMQ_TCL_PACKAGE_VERSION);
+    result = Tcl_PkgProvide(tclInterpreter, PACKAGE_NAME, PACKAGE_VERSION);
     return (result != TCL_ERROR);
 }
 
