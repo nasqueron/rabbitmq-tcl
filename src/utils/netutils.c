@@ -50,7 +50,7 @@ char *get_host(const char *expression, const char *defaultHost) {
     if (pos == STR_NOT_FOUND) {
         strcpy(host, expression);
     } else if (pos == 0) {
-        strcpy(host, defaultHost); //Handle ":5000" case
+        strcpy(host, defaultHost); // Handle ":5000" case
     } else {
         strncpy(host, expression, pos);
         host[pos] = '\0';
