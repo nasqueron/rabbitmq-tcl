@@ -3,6 +3,7 @@
 *.core
 
 # Libraries
+build/
 *.so
 *.so.*
 
