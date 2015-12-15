@@ -66,42 +66,47 @@ int strpos(const char *haystack, const char *needle) {
 char *str_replace(const char *needle, const char *replace, char *haystack) {
     // This code is based on a str_replace function designed by
     // Chantra <chantra@debuntu.org> and  Iain R. Learmonth <irl@sdf.org>
-    // Source:  https://github.com/irl/la-cucina/blob/master/str_replace.c
+    // Source: https://github.com/irl/la-cucina/blob/master/str_replace.c
 
-    char *tok = NULL;
-    char *newstr = NULL;
-    char *oldstr = NULL;
-    int oldstr_len = 0;
-    int needle_len = 0;
-    int replacement_len = 0;
+    char *token = NULL;
+    char *replacedString = NULL;
+    char *oldString = NULL;
 
-    newstr = strdup(haystack);
-    needle_len = strlen(needle);
-    replacement_len = strlen(replace);
+    int oldStringLen = 0;
+    int needleLen = 0;
+    int replaceLen = 0;
 
-    if (needle == NULL || replace == NULL || needle_len == 0) {
-        return newstr;
+    int len; // Stores len before a malloc call
+
+    replacedString = strdup(haystack);
+    needleLen = strlen(needle);
+    replaceLen = strlen(replace);
+
+    if (needle == NULL || replace == NULL || needleLen == 0) {
+        return replacedString;
     }
 
-    while ((tok = strstr(newstr, needle))) {
-        oldstr = newstr;
-        oldstr_len = strlen(oldstr);
-        newstr = (char *)malloc(
-            sizeof(char) * (oldstr_len - needle_len + replacement_len + 1));
+    while ((token = strstr(replacedString, needle))) {
+        oldString = replacedString;
+        oldStringLen = strlen(oldString);
 
-        if (newstr == NULL) {
-            free(oldstr);
+        len = oldStringLen - needleLen + replaceLen + 1;
+        replacedString = (char *)malloc(sizeof(char) * len);
+
+        if (replacedString == NULL) {
+            free(oldString);
             return NULL;
         }
 
-        memcpy(newstr, oldstr, tok - oldstr);
-        memcpy(newstr + (tok - oldstr), replace, replacement_len);
-        memcpy(newstr + (tok - oldstr) + replacement_len, tok + needle_len,
-               oldstr_len - needle_len - (tok - oldstr));
-        memset(newstr + oldstr_len - needle_len + replacement_len, 0, 1);
+        memcpy(replacedString, oldString, token - oldString);
+        memcpy(replacedString + (token - oldString), replace, replaceLen);
+        memcpy(replacedString + (token - oldString) + replaceLen,
+               token + needleLen,
+               oldStringLen - needleLen - (token - oldString));
+        memset(replacedString + oldStringLen - needleLen + replaceLen, 0, 1);
 
-        free(oldstr);
+        free(oldString);
     }
 
-    return newstr;
+    return replacedString;
 }
