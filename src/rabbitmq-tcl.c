@@ -133,11 +133,11 @@ int amqp_get_error(amqp_connection_state_t connection,
 /**
  * Determines the AMQP error from the server RPC reply, prints an error message
  * based on this error and the specified context, then notify TCL an error
- *occured.
+ * occured.
  *
  * @param[out] tclInterpreter The interpreter in which to set result
  * @param[in] errorContext The context of the error message, typically what were
- *done at the moment of the error
+ * done at the moment of the error
  * @param[in] rcpReply The AMQP RPC reply
  * @return TCL_ERROR
  */
