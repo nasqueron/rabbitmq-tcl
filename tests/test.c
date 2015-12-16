@@ -35,10 +35,10 @@
 int main(void) {
     const UnitTest tests[] = {
         // netutils
-        unit_test(test_get_host),        unit_test(test_get_port),
+        unit_test(test_get_host), unit_test(test_get_port),
 
         // strutils
-        unit_test(test_strpos),          unit_test(test_str_replace),
+        unit_test(test_strpos), unit_test(test_str_replace),
 
         // helper functions
         unit_test(test_is_mq_connected),
