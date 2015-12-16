@@ -137,7 +137,7 @@ endif
 
 ${BUILD}/makePkgIndex:
 	${MKDIR} ${BUILD}
-	${CC} makePkgIndex.c -o ${BUILD}/makePkgIndex
+	${CC} -D_WITH_GETLINE makePkgIndex.c -o ${BUILD}/makePkgIndex
 
 ${BUILD}/pkgIndex.tcl: ${BUILD}/makePkgIndex
 	${BUILD}/makePkgIndex pkgIndex.tcl.in > ${BUILD}/pkgIndex.tcl
