@@ -93,11 +93,6 @@ Segmentation violation.
 %
 ```
 
-If you enable it, you should explicitely unload the extension before exiting
-your TCL code with something like `unload ./rabbitmq.so`.
-
-If not, e4c will throw a ContextNotEnded exception.
-
 ## Misc
 
 ### Acknowledgment

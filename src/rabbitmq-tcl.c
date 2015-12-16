@@ -195,7 +195,7 @@ int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
 /**
  * mq command
  *
- * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1, …)
+ * @param[in] clientData The context with the command number
  * @param[out] tclInterpreter The interpreter calling this function
  * @param[in] argc The amount of command arguments
  * @param[in] argv The command arguments
@@ -207,7 +207,9 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
     char *command;
     struct command_context *context;
 
-    if (argc <= 1) {
+    // Parses arguments and prepares context
+
+    if (argc < 2) {
         return mq_usage(tclInterpreter);
     }
 
@@ -215,37 +217,65 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
     connectionNumber = context->commandNumber;
     command = Tcl_GetString(argv[1]);
 
+    // Run commands
+
+    argc -= 2;
+    argv += 2;
+
 #ifdef USE_E4C
-    try {
+    volatile int status = 1;
+    const e4c_signal_mapping *old_mappings;
+
+    e4c_reusing_context(status, 0) {
+
+        old_mappings = e4c_context_get_signal_mappings();
+        e4c_context_set_signal_mappings(e4c_default_signal_mappings);
+
+        try {
 #endif
-        if (strcmp(command, "bindqueue") == 0) {
-            result = mq_bindqueue(connectionNumber, tclInterpreter, argc - 2,
-                                  argv + 2);
-        } else if (strcmp(command, "connect") == 0) {
-            result = mq_connect(connectionNumber, tclInterpreter, argc - 2,
-                                argv + 2);
-        } else if (strcmp(command, "connected") == 0) {
-            result = mq_connected(connectionNumber, tclInterpreter);
-        } else if (strcmp(command, "disconnect") == 0) {
-            result = mq_disconnect(connectionNumber, tclInterpreter);
-        } else if (strcmp(command, "get") == 0) {
-            result =
-                mq_get(connectionNumber, tclInterpreter, argc - 2, argv + 2);
-        } else if (strcmp(command, "publish") == 0) {
-            result = mq_publish(connectionNumber, tclInterpreter, argc - 2,
-                                argv + 2);
-        } else if (strcmp(command, "version") == 0) {
-            result = mq_version(tclInterpreter);
-        } else {
-            result = mq_usage(tclInterpreter);
-        }
+            result = call_mq_command(connectionNumber, tclInterpreter, command,
+                                     argc, argv);
 #ifdef USE_E4C
-    } catch (RuntimeException) {
-        result = tcl_exception(tclInterpreter);
+        } catch (RuntimeException) {
+            result = tcl_exception(tclInterpreter);
+        }
+
+        e4c_context_set_signal_mappings(old_mappings);
     }
 #endif
 
     return result;
+}
+
+/**
+ * Calls the relevant mq command and returns result
+ *
+ * @param[in] connectionNumber The connection offset (0 for mq, 1 for mq1,
+ *…)
+ * @param[out] tclInterpreter The interpreter calling this function
+ * @param[in] argc The amount of command arguments
+ * @param[in] argv The command arguments
+ * @return TCL_OK, TCL_ERROR, TCL_RETURN, TCL_BREAK or TCL_CONTINUE
+ */
+int call_mq_command(int connectionNumber, Tcl_Interp *tclInterpreter,
+                    char *command, int argc, Tcl_Obj *const argv[]) {
+    if (strcmp(command, "bindqueue") == 0) {
+        return mq_bindqueue(connectionNumber, tclInterpreter, argc, argv);
+    } else if (strcmp(command, "connect") == 0) {
+        return mq_connect(connectionNumber, tclInterpreter, argc, argv);
+    } else if (strcmp(command, "connected") == 0) {
+        return mq_connected(connectionNumber, tclInterpreter);
+    } else if (strcmp(command, "disconnect") == 0) {
+        return mq_disconnect(connectionNumber, tclInterpreter);
+    } else if (strcmp(command, "get") == 0) {
+        return mq_get(connectionNumber, tclInterpreter, argc, argv);
+    } else if (strcmp(command, "publish") == 0) {
+        return mq_publish(connectionNumber, tclInterpreter, argc, argv);
+    } else if (strcmp(command, "version") == 0) {
+        return mq_version(tclInterpreter);
+    } else {
+        return mq_usage(tclInterpreter);
+    }
 }
 
 /**
@@ -763,16 +793,5 @@ int Rabbitmq_Init(Tcl_Interp *tclInterpreter) {
         return TCL_ERROR;
     }
 
-#ifdef USE_E4C
-    e4c_context_begin(E4C_TRUE);
-#endif
-
     return TCL_OK;
 }
-
-#ifdef USE_E4C
-int Rabbitmq_Unload(Tcl_Interp *tclInterpreter, int flags) {
-    e4c_context_end();
-    return TCL_OK;
-}
-#endif
