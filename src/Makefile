@@ -45,9 +45,17 @@ INCLUDES=-I$(TCL_INCLUDE) -I$(RABBITMQ_INCLUDE)
 
 LIBS=-ltcl${TCLVERSION} -lrabbitmq
 
+# Features
+
+ENABLE_E4C=1
+
 # Other options
 
 CCOPTS=-DDEBUG -g
+
+ifeq ($(ENABLE_E4C),1)
+	CCOPTS+=-DUSE_E4C
+endif
 
 # Paths
 
@@ -122,6 +130,9 @@ ${BUILD}/rabbitmq.so: ${BUILD}/rabbitmq.o
 ${BUILD}/rabbitmq.o:
 	${MKDIR} ${BUILD}
 	${CC} -c -fPIC utils/netutils.c -o ${BUILD}/netutils.o
+ifeq ($(ENABLE_E4C),1)
+	${CC} -c -fPIC ../vendor/e4c/e4c.c -o ${BUILD}/e4c.o
+endif
 	${CC} -c -fPIC rabbitmq-tcl.c -o ${BUILD}/rabbitmq.o
 
 ${BUILD}/makePkgIndex:

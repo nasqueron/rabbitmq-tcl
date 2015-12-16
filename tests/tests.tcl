@@ -30,3 +30,5 @@ namespace import ::tcltest::*
 test mq-connected {When the interpreter starts, we shouldn't be marked as connected to the broker.} {
     mq connected
 } 0
+
+unload ../build/rabbitmq.so

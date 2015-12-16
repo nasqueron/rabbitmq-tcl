@@ -77,6 +77,27 @@ mq3 connect
 mq3 disconnect
 ```
 
+## Customize the build
+
+### E4C
+
+This extension is a wrapper around librabbitmq, which is not bulletproof against
+null pointer errors.
+
+In a critical context, we suggest to enable e4c. If a command `mq quux` would
+try to use a NULL pointer, instead of segfault, you would get a TCL error,
+and then would be able to resume operations:
+```
+% mq quux
+Segmentation violation.
+%
+```
+
+If you enable it, you should explicitely unload the extension before exiting
+your TCL code with something like `unload ./rabbitmq.so`.
+
+If not, e4c will throw a ContextNotEnded exception.
+
 ## Misc
 
 ### Acknowledgment

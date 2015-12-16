@@ -24,6 +24,10 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
+#ifdef USE_E4C
+#include "../vendor/e4c/e4c.h"
+#endif
+
 #include "config.h"
 #include "version.h"
 #include "rabbitmq-tcl.h"
@@ -98,6 +102,19 @@ int tcl_error(Tcl_Interp *tclInterpreter, char *error) {
     Tcl_SetResult(tclInterpreter, error, TCL_STATIC);
     return TCL_ERROR;
 }
+
+#ifdef USE_E4C
+/**
+ * Prints an E4C exception message and notifies TCL an error occured.
+ *
+ * @param[out] tclInterpreter The interpreter in which to set result
+ * @return TCL_ERROR
+ */
+int tcl_exception(Tcl_Interp *tclInterpreter) {
+    const e4c_exception *exception = e4c_get_exception();
+    return tcl_error(tclInterpreter, strdup(exception->message));
+}
+#endif
 
 /**
  * Gets a broker error
@@ -186,7 +203,7 @@ int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
  */
 static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
                       int argc, Tcl_Obj *const argv[]) {
-    int connectionNumber;
+    int connectionNumber, result;
     char *command;
     struct command_context *context;
 
@@ -198,24 +215,37 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
     connectionNumber = context->commandNumber;
     command = Tcl_GetString(argv[1]);
 
-    if (strcmp(command, "bindqueue") == 0) {
-        return mq_bindqueue(connectionNumber, tclInterpreter, argc - 2,
-                            argv + 2);
-    } else if (strcmp(command, "connect") == 0) {
-        return mq_connect(connectionNumber, tclInterpreter, argc - 2, argv + 2);
-    } else if (strcmp(command, "connected") == 0) {
-        return mq_connected(connectionNumber, tclInterpreter);
-    } else if (strcmp(command, "disconnect") == 0) {
-        return mq_disconnect(connectionNumber, tclInterpreter);
-    } else if (strcmp(command, "get") == 0) {
-        return mq_get(connectionNumber, tclInterpreter, argc - 2, argv + 2);
-    } else if (strcmp(command, "publish") == 0) {
-        return mq_publish(connectionNumber, tclInterpreter, argc - 2, argv + 2);
-    } else if (strcmp(command, "version") == 0) {
-        return mq_version(tclInterpreter);
-    } else {
-        return mq_usage(tclInterpreter);
+#ifdef USE_E4C
+    try {
+#endif
+        if (strcmp(command, "bindqueue") == 0) {
+            result = mq_bindqueue(connectionNumber, tclInterpreter, argc - 2,
+                                  argv + 2);
+        } else if (strcmp(command, "connect") == 0) {
+            result = mq_connect(connectionNumber, tclInterpreter, argc - 2,
+                                argv + 2);
+        } else if (strcmp(command, "connected") == 0) {
+            result = mq_connected(connectionNumber, tclInterpreter);
+        } else if (strcmp(command, "disconnect") == 0) {
+            result = mq_disconnect(connectionNumber, tclInterpreter);
+        } else if (strcmp(command, "get") == 0) {
+            result =
+                mq_get(connectionNumber, tclInterpreter, argc - 2, argv + 2);
+        } else if (strcmp(command, "publish") == 0) {
+            result = mq_publish(connectionNumber, tclInterpreter, argc - 2,
+                                argv + 2);
+        } else if (strcmp(command, "version") == 0) {
+            result = mq_version(tclInterpreter);
+        } else {
+            result = mq_usage(tclInterpreter);
+        }
+#ifdef USE_E4C
+    } catch (RuntimeException) {
+        result = tcl_exception(tclInterpreter);
     }
+#endif
+
+    return result;
 }
 
 /**
@@ -733,5 +763,16 @@ int Rabbitmq_Init(Tcl_Interp *tclInterpreter) {
         return TCL_ERROR;
     }
 
+#ifdef USE_E4C
+    e4c_context_begin(E4C_TRUE);
+#endif
+
     return TCL_OK;
 }
+
+#ifdef USE_E4C
+int Rabbitmq_Unload(Tcl_Interp *tclInterpreter, int flags) {
+    e4c_context_end();
+    return TCL_OK;
+}
+#endif
