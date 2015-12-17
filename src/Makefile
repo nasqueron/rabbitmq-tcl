@@ -29,7 +29,7 @@
 # These variables should be coherent with src/version.h
 
 MAJOR_VERSION=0
-VERSION=0.1.0
+VERSION=0.1.1
 
 # 3rd party versions
 

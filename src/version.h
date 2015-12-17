@@ -30,7 +30,7 @@
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
 #define PRODUCT_NAME "RabbitMQ TCL"
-#define PRODUCT_VERSION "0.1.0"
+#define PRODUCT_VERSION "0.1.1"
 
 #define PACKAGE_NAME "rabbitmq"
 #define PACKAGE_VERSION PRODUCT_VERSION
