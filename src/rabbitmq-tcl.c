@@ -174,8 +174,6 @@ int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
             sprintf(error, "%s a server channel error %d occurred: %.*s",
                     errorContext, m->reply_code, (int)m->reply_text.len,
                     (char *)m->reply_text.bytes);
-            // Marks the connection as disconnected
-            brokerConnections[connectionNumber].connected = 0;
         } else {
             sprintf(error,
                     "%s an unknown server error occurred, method id 0x%08X",
