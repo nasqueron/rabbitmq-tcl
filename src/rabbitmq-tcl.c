@@ -201,7 +201,7 @@ int tcl_amqp_error(Tcl_Interp *tclInterpreter, const char *errorContext,
  */
 static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
                       int argc, Tcl_Obj *const argv[]) {
-    int connectionNumber, result;
+    int connectionNumber;
     char *command;
     struct command_context *context;
 
@@ -215,34 +215,46 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
     connectionNumber = context->commandNumber;
     command = Tcl_GetString(argv[1]);
 
-    // Run commands
+    // Run the command
+    // We drop "mq <command>" from argv and pass the rest as parameters.
+    //
+    // If exceptions4c is needed, we wrap the call inside a try/catch block.
+    // This allows to avoid a crash if something is wrong in librabbitmq.
 
     argc -= 2;
     argv += 2;
 
 #ifdef USE_E4C
-    volatile int status = 1;
+    int result;              // TCL_OK or TCL_ERROR
+    volatile int status = 1; // will be 0 if an exception occurs
     const e4c_signal_mapping *old_mappings;
 
     e4c_reusing_context(status, 0) {
 
+        // Hijacks the signal processing during the mq ... runtime
         old_mappings = e4c_context_get_signal_mappings();
         e4c_context_set_signal_mappings(e4c_default_signal_mappings);
 
         try {
-#endif
+            // We can't return inside a try/catch block, so we store the result
+            // in a variable. We'll return it after restoring the signal table.
             result = call_mq_command(connectionNumber, tclInterpreter, command,
                                      argc, argv);
-#ifdef USE_E4C
         } catch (RuntimeException) {
+            // If an exception occurs, tcl_exception will print the exception
+            // message (e.g. "segmentation violation" if we've got a SIGSEGV).
+            // The result here will always be TCL_ERROR.
             result = tcl_exception(tclInterpreter);
         }
 
         e4c_context_set_signal_mappings(old_mappings);
     }
-#endif
 
     return result;
+#else
+    return call_mq_command(connectionNumber, tclInterpreter, command, argc,
+                           argv);
+#endif
 }
 
 /**
