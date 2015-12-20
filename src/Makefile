@@ -73,6 +73,7 @@ RLWRAP=rlwrap
 RM=rm -f
 SYMLINK=ln -s
 TCLSH=tclsh${TCLVERSION}
+VALGRIND=valgrind
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                             #
@@ -107,7 +108,7 @@ test:
 	cd ../tests && make retest
 
 demo:
-	${RLWRAP} ${TCLSH}
+	${VALGRIND} ${TCLSH}
 
 rebuild: clean lint all test demo
 
