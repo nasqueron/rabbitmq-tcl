@@ -505,7 +505,7 @@ int mq_get(int connectionNumber, Tcl_Interp *tclInterpreter, int argc,
                               connectionNumber);
     }
 
-    if (&message && &(message.body)) {
+    if (&(message.body)) {
         messageBody = malloc(message.body.len + 1024);
         sprintf(messageBody, "%.*s", (int)message.body.len,
                 (char *)message.body.bytes);
