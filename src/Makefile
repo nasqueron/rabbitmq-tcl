@@ -94,7 +94,7 @@ lib: ${BUILD}/rabbitmq.so
 pkg: ${BUILD}/pkgIndex.tcl
 
 cleanlib:
-	$(RM) core ${BUILD}/*.o ${BUILD}/*.so ${BUILD}/*.so.${VERSION}
+	$(RM) core ${BUILD}/*.o ${BUILD}/*.so*
 
 cleanpkg:
 	$(RM) ${BUILD}/makePkgIndex ${BUILD}/pkgIndex.tcl
