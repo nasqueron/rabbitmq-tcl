@@ -73,7 +73,7 @@ Please note `mq get` doesn't consume, it provides direct access instead.
 
 ### Multiple connections
 
-If you need to use more than one connectionn, you've also aliases mq1 to mq10:
+If you need to use more than one connection, you've also aliases mq1 to mq10:
 
 ```
 mq3 connect
