@@ -11,6 +11,25 @@ show how the TCL command handling and the API wrapping work.
 
 ## User starting guide
 
+### Dependencies
+
+You need a compiler (Makefile is configured for clang),
+headers for TCL and librabbitmq.
+
+#### FreeBSD
+
+```
+pkg install tcl86 rabbitmq-c-devel
+```
+
+Beware the rabbitmq-c port is at README writing time an old 0.0.1 version.
+
+#### Fedora / RHEL / CentOS
+
+```
+dnf install clang tcl-devel librabbitmq-devel
+```
+
 ### Installation
 
 ```
