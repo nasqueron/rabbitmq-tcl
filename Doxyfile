@@ -1,0 +1,35 @@
+#   -------------------------------------------------------------
+#   Doxyfile :: configuration for Doxygen documentation system
+#   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#   Version:        Doxyfile 1.9.6
+#   Project:        Nasqueron
+#   License:        Trivial work, not eligible to copyright
+#   -------------------------------------------------------------
+
+#   -------------------------------------------------------------
+#   Project
+#   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+PROJECT_NAME           = "RabbitMQ TCL"
+PROJECT_NUMBER         = 0.1.1
+PROJECT_BRIEF          = "AMQP client TCL extension"
+PROJECT_LOGO           = doc/logo-nasqueron.png
+
+OUTPUT_DIRECTORY       = doc/build
+STRIP_FROM_PATH        = src/
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+NUM_PROC_THREADS       = 0
+
+#   -------------------------------------------------------------
+#   Build
+#   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_PRIV_VIRTUAL   = YES
+
+INPUT                  = src \
+                         doc/INDEX.md
+
+USE_MDFILE_AS_MAINPAGE = doc/INDEX.md

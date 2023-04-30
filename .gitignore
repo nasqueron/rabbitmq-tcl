@@ -9,3 +9,6 @@ build/
 
 # Tests
 tests/test
+
+# Documentation
+doc/build/
