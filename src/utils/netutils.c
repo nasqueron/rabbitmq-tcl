@@ -26,7 +26,7 @@
 #include "strutils.h"
 
 /*  -------------------------------------------------------------
-    Parse host:port expression helper functions
+    Parser for host:port expressions
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    */
 
 /**

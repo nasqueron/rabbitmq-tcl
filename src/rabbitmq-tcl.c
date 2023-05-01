@@ -92,7 +92,7 @@ int amqp_will_be_non_blocking_operation(amqp_connection_state_t connection) {
 }
 
 /**
- * Prints an error message as command result and notify TCL an error occured.
+ * Prints an error message as command result and notifies TCL an error occured.
  *
  * @param[out] tclInterpreter The interpreter in which to set result
  * @param[in] error The error message
@@ -132,7 +132,7 @@ int amqp_get_error(amqp_connection_state_t connection,
 
 /**
  * Determines the AMQP error from the server RPC reply, prints an error message
- * based on this error and the specified context, then notify TCL an error
+ * based on this error and the specified context, then notifies TCL an error
  * occured.
  *
  * @param[out] tclInterpreter The interpreter in which to set result
@@ -215,7 +215,7 @@ static int mq_command(ClientData clientData, Tcl_Interp *tclInterpreter,
     connectionNumber = context->commandNumber;
     command = Tcl_GetString(argv[1]);
 
-    // Run the command
+    // Runs the command
     // We drop "mq <command>" from argv and pass the rest as parameters.
     //
     // If exceptions4c is needed, we wrap the call inside a try/catch block.
@@ -712,7 +712,7 @@ extern int Rabbitmq_Init(Tcl_Interp *tclInterpreter);
 #endif
 
 /**
- * Determines TCL environment is correct and initiliazes stubs if needed
+ * Determines if the TCL environment is correct and initializes stubs if needed
  *
  * @param[out] tclInterpreter The current TCL interpreter
  * @return 1 on success; otherwise, 0
@@ -787,7 +787,7 @@ int tcl_provide_package(Tcl_Interp *tclInterpreter) {
 }
 
 /**
- * Initializes the library and provide mq commands
+ * Initializes the library and provides mq commands
  *
  * @param[out] tclInterpreter The current TCL interpreter to provide commands to
  * @return TCL_OK on success; otherwise, TCL_ERROR

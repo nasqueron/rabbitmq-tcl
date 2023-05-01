@@ -65,7 +65,7 @@ int strpos(const char *haystack, const char *needle) {
  */
 char *str_replace(const char *needle, const char *replace, char *haystack) {
     // This code is based on a str_replace function designed by
-    // Chantra <chantra@debuntu.org> and  Iain R. Learmonth <irl@sdf.org>
+    // Chantra <chantra@debuntu.org> and Iain R. Learmonth <irl@sdf.org>
     // Source: https://github.com/irl/la-cucina/blob/master/str_replace.c
 
     char *token = NULL;
